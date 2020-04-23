@@ -1,0 +1,28 @@
+.App {
+  text-align: center;
+}
+
+.board{
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 400px;
+  margin: 0 auto;
+  border: 1px solid;
+}
+
+.row{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.row-item{
+  width: 50px;
+  height: 50px
+}
+
+.row:nth-of-type(odd) .row-item:nth-of-type(odd),
+.row:nth-of-type(even) .row-item:nth-of-type(even){
+  background: black;
+}
