@@ -1,11 +1,11 @@
-import React from 'react';
-import Cell from './Cell';
+import React from "react";
+import Cell from "./Cell";
 
-const Row = ({cells}) => {
+const Row = ({ cells }) => {
   return (
-    <ul className='row'>
+    <ul className="row">
       {cells.map((cell, num) => {
-        return <Cell key={cell.name} />;
+        return <Cell key={cell.name} name={cell.name} x={cell.x} y={cell.y} />;
       })}
     </ul>
   );

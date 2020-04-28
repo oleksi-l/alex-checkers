@@ -6,8 +6,8 @@ const makeRows = () => {
     return row.map((cell, x) => {
       return {
         name: `${letters[x]}${y + 1}`,
-        x: y + 1,
-        y: x + 1,
+        x: y,
+        y: x,
       };
     });
   });
@@ -17,34 +17,34 @@ const makeRows = () => {
 let rows = makeRows();
 
 const filterCheckers = (row, num) => {
-  let result = row.filter((item, i) => {
+  let result = {};
+  row.filter((item, i) => {
     if (num % 2 === 0) {
-      if (i % 2 === 0) return item;
+      if (i % 2 === 0) result[item.name] = item;
     } else {
-      if (i % 2 !== 0) return item;
+      if (i % 2 !== 0) result[item.name] = item;
     }
   });
   return result;
 };
 
 const makeCheckers = () => {
-  let checkersArr = [];
+  let result = {};
   for (let i = 0; i < rows.length; i++) {
     if (i <= 2 || i >= 5) {
-      checkersArr[i] = filterCheckers(rows[i], i);
+      result = Object.assign(result, filterCheckers(rows[i], i));
     }
   }
-  let result = checkersArr.filter((item, i) => {
-    if (i <= 2 || i >= 5) {
-      item.color = i <= 2 ? "white" : "black";
-      item.direction = i <= 2 ? "down" : "up";
-      item.isQueen = false;
-      return item;
-    }
-  });
-  return result.flat();
+  for (let checker in result) {
+    result[checker].color = result[checker].x <= 3 ? "white" : "black";
+    result[checker].direction = result[checker].x <= 3 ? "down" : "up";
+    result[checker].isQueen = false;
+  }
+  return result;
 };
 
 const checkers = makeCheckers();
 
-export { letters, rows, checkers };
+const freeCells = ["b4","d4","f4","h4","a5","c5","e5","g5"];
+
+export { letters, rows, checkers, freeCells };
