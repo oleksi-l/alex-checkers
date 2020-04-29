@@ -20,11 +20,25 @@
 .row-item {
   width: 50px;
   height: 50px;
+  position: relative;
+  z-index: 5;
 }
 
 .row:nth-of-type(odd) .row-item:nth-of-type(odd),
 .row:nth-of-type(even) .row-item:nth-of-type(even) {
   background: black;
+}
+
+.row-item.active::after{
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: rebeccapurple;
+  z-index: 1;
 }
 
 .checker {

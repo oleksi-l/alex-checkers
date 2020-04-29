@@ -6,8 +6,8 @@ const makeRows = () => {
     return row.map((cell, x) => {
       return {
         name: `${letters[x]}${y + 1}`,
-        x: y,
-        y: x,
+        x: y+1,
+        y: x+1,
       };
     });
   });
@@ -37,7 +37,7 @@ const makeCheckers = () => {
   }
   for (let checker in result) {
     result[checker].color = result[checker].x <= 3 ? "white" : "black";
-    result[checker].direction = result[checker].x <= 3 ? "down" : "up";
+    result[checker].to = result[checker].x <= 3 ? "down" : "up";
     result[checker].isQueen = false;
   }
   return result;
