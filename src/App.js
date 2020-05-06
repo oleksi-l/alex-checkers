@@ -46,6 +46,10 @@ class App extends React.Component {
       if (checkers[key].color === color) {
         let bited = this.getBitedFields(checkers[key]);
         let coords = this.getCoords(checkers[key], "turns");
+        if (!checkers[key].isQueen) {
+          console.log(key);
+          this.getDiagonal(checkers[key]);
+        }
         if (Object.keys(bited.bited).length > 0) {
           willBeBited = { ...willBeBited, ...bited.bited };
           require[key] = bited.turns;
@@ -80,9 +84,9 @@ class App extends React.Component {
 
     let result = [];
 
-    for(let i = 0; i < res.length; i++){
-      if(action === "turns" && !freeCells.includes(res[i])) continue;
-      if(res[i].indexOf("undefined") < 0) result.push(res[i]);
+    for (let i = 0; i < res.length; i++) {
+      if (action === "turns" && !freeCells.includes(res[i])) continue;
+      if (res[i].indexOf("undefined") < 0) result.push(res[i]);
     }
 
     return result;
@@ -140,15 +144,12 @@ class App extends React.Component {
     return { checkers: checkers, freeCells: freeCells, wasBited: wasBited };
   };
 
-  biteAgain = (field, player) => {
-    let res = this.scanBoard(player);
-    if (
-      Object.keys(res.turns).length > 0 &&
-      Object.keys(res.willBeBited).length > 0
-    ) {
+  biteAgain = (player) => {
+    let { turns, willBeBited } = this.scanBoard(player);
+    if (Object.keys(turns).length > 0 && Object.keys(willBeBited).length > 0) {
       this.setState({
-        turns: res.turns,
-        toBite: res.willBeBited,
+        turns: turns,
+        toBite: willBeBited,
       });
     } else {
       this.setState({
@@ -162,6 +163,12 @@ class App extends React.Component {
     let { freeCells, player } = this.state;
     if (freeCells.includes(field.name) && isActive === "active") {
       let { checkers, freeCells, wasBited } = this.replaceChecker(field);
+      if (!checkers[field.name].isQueen) {
+        if (checkers[field.name].to === "down" && field.x === 8)
+          checkers[field.name].isQueen = true;
+        if (checkers[field.name].to === "up" && field.x === 1)
+          checkers[field.name].isQueen = true;
+      }
       if (wasBited === 1) {
         this.setState(
           (prev) => ({
@@ -170,7 +177,7 @@ class App extends React.Component {
             checkers: checkers,
             freeCells: freeCells,
           }),
-          () => this.biteAgain(this.state.activeChecker, player)
+          () => this.biteAgain(player)
         );
       } else {
         this.setState({
@@ -181,6 +188,78 @@ class App extends React.Component {
         });
       }
     }
+  };
+
+  getLeftDiagonal = (color, x, y) => {
+    let beginX = 0;
+    let beginY = 0;
+    let endX = 0;
+    let endY = 0;
+    let result = {};
+    if (x === y) {
+      endX = 7;
+      endY = 7;
+    }
+    if (x < y) {
+      beginY = x === 0 ? y : y - x;
+      beginX = x === 0 ? 0 : x - x;
+      endY = 7;
+      endX = 7 - beginY;
+    }
+    if (x > y) {
+      beginX = x === 7 ? 7 : x - y;
+      beginY = y - y;
+      endY = x === 7 ? y - 1 : 7 - beginX;
+      endX = beginY === 0 || x === 7 ? 7 : 7 - beginY;
+    }
+    console.log({ beginY: beginY, beginX: beginX, endY: endY, endx: endX });
+    return { beginY: beginY, beginX: beginX, endY: endY, endx: endX };
+  };
+
+  getRightDiagonal = (color, x, y) => {
+    let beginX = 0;
+    let beginY = 0;
+    let endX = 0;
+    let endY = 0;
+    if (x === y) {
+      if(y === 0 || y === 7) beginY = y;
+      beginY = y > 0 && y <= 3 ? (y - y) : y - (7 - x);
+      beginY = beginY < 0 ? 0 : beginY
+      beginX = x === 0 ? 0 : (x + x);
+      beginX = beginX > 7 ? 7 : beginX;
+    }
+
+    if (x < y) {
+      if (x === 0) beginY = 0;
+      else {
+        beginY = y < 4 ? y - y : y - (7 - x);
+        beginY = beginY < 0 ? 7 : beginY;
+      }
+      beginX = y === 7 ? 7 : x + y;
+      beginX = beginX > 7 ? 7 : beginX;
+    }
+
+    if (x > y) {
+      beginY = y === 0 ? 0 : y - (7 - x);
+      if (x === 7) beginY = y;
+      else {
+        beginY = y < 0 ? 0 : beginY;
+      }
+      beginX = x + y;
+      beginX = beginX > 7 ? 7 : beginX;
+    }
+
+    endY = beginX;
+    endX = beginY;
+
+    //  console.log({ beginY: beginY, beginX: beginX, endY: endY, endx: endX });
+    return { beginY: beginY, beginX: beginX, endY: endY, endx: endX };
+  };
+
+  getDiagonal = ({ color, x, y }) => {
+    x = x - 1;
+    y = y - 1;
+    this.getRightDiagonal(color, x, y);
   };
 
   render() {

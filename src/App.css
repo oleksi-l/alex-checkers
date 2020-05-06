@@ -29,8 +29,8 @@
   background: black;
 }
 
-.row-item.active::after{
-  content: '';
+.row-item.active::after {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -48,6 +48,9 @@
   border-radius: 50%;
   position: relative;
   z-index: 10;
+}
+.checker-icon {
+  margin: 5px;
 }
 .white {
   background: #fff;
