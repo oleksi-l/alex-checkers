@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.css";
 import Board from "./Board";
-import { checkers, freeCells, letters } from "./utils";
+import { checkers, freeCells, letters, cells } from "./utils";
 
 export const AppContext = React.createContext();
 
@@ -14,7 +14,7 @@ class App extends React.Component {
       checkers: checkers,
       player: "white",
       turns: {},
-      toBite: {},
+      toBite: {}
     };
   }
 
@@ -41,14 +41,22 @@ class App extends React.Component {
     let turns = {};
     let willBeBited = {};
     let require = {};
-    let { checkers } = this.state;
+    let { checkers, freeCells } = this.state;
     for (let key in checkers) {
       if (checkers[key].color === color) {
         let bited = this.getBitedFields(checkers[key]);
         let coords = this.getCoords(checkers[key], "turns");
         if (!checkers[key].isQueen) {
-          console.log(key);
-          this.getDiagonal(checkers[key]);
+          if (key === "c3") {
+            let tmp = this.getTurnCoordsQueen({
+              coords: this.getDiagonal(checkers[key]),
+              freeCells: freeCells,
+              checkers: checkers,
+              name: key,
+            });
+            // bited = tmp;
+            // coords = tmp;
+          }
         }
         if (Object.keys(bited.bited).length > 0) {
           willBeBited = { ...willBeBited, ...bited.bited };
@@ -99,6 +107,7 @@ class App extends React.Component {
     let turns = [];
     for (let i = 0; i < curCoords.length; i++) {
       let wrap = {};
+      let bited = [];
       if (checkers[curCoords[i]]) {
         if (checkers[curCoords[i]].color === checker.color) continue;
         else {
@@ -112,7 +121,8 @@ class App extends React.Component {
           wrap[end] = checkers[curCoords[i]].name;
           turns.push(end);
         }
-        result[checker.name] = wrap;
+        bited.push(wrap);
+        result[checker.name] = bited;
       }
     }
     return { bited: result, turns: turns };
@@ -127,13 +137,18 @@ class App extends React.Component {
       y: field.y,
     };
     let wasBited = 0;
+    let toDelete = "";
     if (toBite[activeChecker]) {
-      delete checkers[toBite[activeChecker][field.name]];
+      for (let i = 0; i < toBite[activeChecker].length; i++) {
+        if (Object.keys(toBite[activeChecker][i]).includes(field.name)) {
+          toDelete = toBite[activeChecker][i][field.name];
+        }
+      }
+      delete checkers[toDelete];
       freeCells = freeCells.filter(
-        (item) =>
-          item !== field.name && item !== toBite[activeChecker][field.name]
+        (item) => item !== field.name && item !== toDelete
       );
-      freeCells.push(toBite[activeChecker][field.name]);
+      freeCells.push(toDelete);
       wasBited = 1;
     } else {
       freeCells = freeCells.filter((item) => item !== field.name);
@@ -146,7 +161,11 @@ class App extends React.Component {
 
   biteAgain = (player) => {
     let { turns, willBeBited } = this.scanBoard(player);
-    if (Object.keys(turns).length > 0 && Object.keys(willBeBited).length > 0) {
+    if (
+      Object.keys(turns).length > 0 &&
+      Object.keys(willBeBited).length > 0 &&
+      Object.keys(willBeBited).includes(this.state.activeChecker)
+    ) {
       this.setState({
         turns: turns,
         toBite: willBeBited,
@@ -190,12 +209,27 @@ class App extends React.Component {
     }
   };
 
-  getLeftDiagonal = (color, x, y) => {
+  buildDiagonal = (flag, obj) => {
+    let { beginX, beginY, endY, checker } = obj;
+    let before = [];
+    let after = [];
+    beginX = beginX + 1;
+    for (let i = beginY; i <= endY; i++) {
+      if (beginX === 0 && flag === "right") break;
+      let xNum = flag === "right" ? beginX-- : beginX++;
+      let name = `${letters[i]}${xNum}`;
+      if (name === checker.name) continue;
+      checker.x + 1 > xNum ? after.push(name) : before.push(name);
+    }
+    return { before: before, after: after, result: before.concat(after) };
+  };
+
+  getLeftDiagonal = (checker) => {
+    let { x, y } = checker;
     let beginX = 0;
     let beginY = 0;
     let endX = 0;
     let endY = 0;
-    let result = {};
     if (x === y) {
       endX = 7;
       endY = 7;
@@ -212,20 +246,27 @@ class App extends React.Component {
       endY = x === 7 ? y - 1 : 7 - beginX;
       endX = beginY === 0 || x === 7 ? 7 : 7 - beginY;
     }
-    console.log({ beginY: beginY, beginX: beginX, endY: endY, endx: endX });
-    return { beginY: beginY, beginX: beginX, endY: endY, endx: endX };
+    let obj = {
+      beginY: beginY,
+      beginX: beginX,
+      endY: endY,
+      endx: endX,
+      checker: checker,
+    };
+    return this.buildDiagonal("left", obj);
   };
 
-  getRightDiagonal = (color, x, y) => {
+  getRightDiagonal = (checker) => {
+    let { x, y } = checker;
     let beginX = 0;
     let beginY = 0;
     let endX = 0;
     let endY = 0;
     if (x === y) {
-      if(y === 0 || y === 7) beginY = y;
-      beginY = y > 0 && y <= 3 ? (y - y) : y - (7 - x);
-      beginY = beginY < 0 ? 0 : beginY
-      beginX = x === 0 ? 0 : (x + x);
+      if (y === 0 || y === 7) beginY = y;
+      beginY = y > 0 && y <= 3 ? y - y : y - (7 - x);
+      beginY = beginY < 0 ? 0 : beginY;
+      beginX = x === 0 ? 0 : x + x;
       beginX = beginX > 7 ? 7 : beginX;
     }
 
@@ -252,14 +293,74 @@ class App extends React.Component {
     endY = beginX;
     endX = beginY;
 
-    //  console.log({ beginY: beginY, beginX: beginX, endY: endY, endx: endX });
-    return { beginY: beginY, beginX: beginX, endY: endY, endx: endX };
+    let obj = {
+      beginY: beginY,
+      beginX: beginX,
+      endY: endY,
+      endx: endX,
+      checker: checker,
+    };
+    return this.buildDiagonal("right", obj);
   };
 
-  getDiagonal = ({ color, x, y }) => {
-    x = x - 1;
-    y = y - 1;
-    this.getRightDiagonal(color, x, y);
+  getDiagonal = (checker) => {
+    checker = { ...checker, x: checker.x - 1, y: checker.y - 1 };
+    return {
+      left: this.getLeftDiagonal(checker),
+      right: this.getRightDiagonal(checker),
+    };
+  };
+
+  getTurnsByDiagonal = (coords, freeCells, checkers) => {
+    let counter = 0;
+    let coordsToTurn = [];
+    let coordsToBite = [];
+
+    for (let i = 0; i < coords.length; i++) {
+      if (freeCells.includes(coords[i])) coordsToTurn.push(coords[i]);
+      if (!freeCells.includes(coords[i])) {
+        if (checkers[coords[i]]) {
+          if (checkers[coords[i]].color === this.state.player) continue;
+          counter++;
+        }
+      }
+      if (counter > 0) {
+        if (freeCells.includes(coords[i])) {
+          coordsToBite.push(coords[i]);
+        }
+      }
+      if (counter > 1) break;
+    }
+
+    if (Object.keys(coordsToBite).length > 0)
+      coordsToTurn = Object.keys(coordsToBite);
+
+    return {
+      turns: coordsToTurn,
+      toBite: coordsToBite,
+    };
+  };
+
+  getTurnCoordsQueen = ({ coords, freeCells, name, checkers }) => {
+    let turns = [];
+    let toBite = [];
+    for (let key in coords) {
+      coords[key].result =
+        key === "left"
+          ? coords[key].result.sort()
+          : coords[key].result.sort().reverse();
+      let tmp = this.getTurnsByDiagonal(
+        coords[key].result,
+        freeCells,
+        checkers
+      );
+      turns = [...turns, ...tmp.turns];
+      toBite = [...toBite, ...tmp.toBite];
+    }
+    return {
+      turns: turns,
+      bited: Object.values(toBite) !== "" ? { [name]: toBite } : {},
+    };
   };
 
   render() {

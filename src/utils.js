@@ -16,6 +16,17 @@ const makeRows = () => {
 
 let rows = makeRows();
 
+const getCellsCoords = rows => {
+  rows = rows.flat();
+  let result = {};
+  for(let i = 0; i < rows.length;i++){
+    result[rows[i].name] = {x: rows[i].x,y:rows[i].y};
+  }
+  return result;
+};
+
+let cells = getCellsCoords(rows);
+
 const filterCheckers = (row, num) => {
   let result = {};
   row.filter((item, i) => {
@@ -47,4 +58,4 @@ const checkers = makeCheckers();
 
 const freeCells = ["b4","d4","f4","h4","a5","c5","e5","g5"];
 
-export { letters, rows, checkers, freeCells };
+export { letters, rows, checkers, freeCells, cells };
