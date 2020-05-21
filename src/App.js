@@ -14,7 +14,7 @@ class App extends React.Component {
       checkers: checkers,
       player: "white",
       turns: {},
-      toBite: {}
+      toBite: {},
     };
   }
 
@@ -41,22 +41,24 @@ class App extends React.Component {
     let turns = {};
     let willBeBited = {};
     let require = {};
-    let { checkers, freeCells } = this.state;
+    let { checkers } = this.state;
     for (let key in checkers) {
       if (checkers[key].color === color) {
         let bited = this.getBitedFields(checkers[key]);
         let coords = this.getCoords(checkers[key], "turns");
-        if (!checkers[key].isQueen) {
-          if (key === "c3") {
-            let tmp = this.getTurnCoordsQueen({
-              coords: this.getDiagonal(checkers[key]),
-              freeCells: freeCells,
-              checkers: checkers,
-              name: key,
-            });
-            // bited = tmp;
-            // coords = tmp;
+        if (checkers[key].isQueen) {
+          let tmp = this.getTurnCoordsQueen({
+            coords: this.getDiagonal(checkers[key]),
+            checker: checkers[key],
+          });
+
+          if (Object.keys(tmp.toBite).length > 0) {
+            bited.turns = Object.keys(tmp.toBite);
+            bited.bited[key] = tmp.toBite;
+          } else {
+            bited.turns = tmp.turns;
           }
+          coords = tmp.turns;
         }
         if (Object.keys(bited.bited).length > 0) {
           willBeBited = { ...willBeBited, ...bited.bited };
@@ -105,9 +107,8 @@ class App extends React.Component {
     let { checkers, freeCells } = this.state;
     let result = {};
     let turns = [];
+    let bited = [];
     for (let i = 0; i < curCoords.length; i++) {
-      let wrap = {};
-      let bited = [];
       if (checkers[curCoords[i]]) {
         if (checkers[curCoords[i]].color === checker.color) continue;
         else {
@@ -118,10 +119,9 @@ class App extends React.Component {
           let end = `${letters[checkY - 1]}${checkX}`;
           if (end.indexOf("undefined") > -1 || !freeCells.includes(end))
             continue;
-          wrap[end] = checkers[curCoords[i]].name;
           turns.push(end);
+          bited.push({ [end]: checkers[curCoords[i]].name });
         }
-        bited.push(wrap);
         result[checker.name] = bited;
       }
     }
@@ -142,6 +142,7 @@ class App extends React.Component {
       for (let i = 0; i < toBite[activeChecker].length; i++) {
         if (Object.keys(toBite[activeChecker][i]).includes(field.name)) {
           toDelete = toBite[activeChecker][i][field.name];
+          break;
         }
       }
       delete checkers[toDelete];
@@ -218,10 +219,10 @@ class App extends React.Component {
       if (beginX === 0 && flag === "right") break;
       let xNum = flag === "right" ? beginX-- : beginX++;
       let name = `${letters[i]}${xNum}`;
-      if (name === checker.name) continue;
+      // if(name === checker.name) continue;
       checker.x + 1 > xNum ? after.push(name) : before.push(name);
     }
-    return { before: before, after: after, result: before.concat(after) };
+    return before.concat(after);
   };
 
   getLeftDiagonal = (checker) => {
@@ -311,56 +312,152 @@ class App extends React.Component {
     };
   };
 
-  getTurnsByDiagonal = (coords, freeCells, checkers) => {
+  getCFCheck = (coord, freeCells, checkers, player) => {
     let counter = 0;
-    let coordsToTurn = [];
-    let coordsToBite = [];
+    let turns = [];
+    let bited = {};
+    let deprecated = [];
 
-    for (let i = 0; i < coords.length; i++) {
-      if (freeCells.includes(coords[i])) coordsToTurn.push(coords[i]);
-      if (!freeCells.includes(coords[i])) {
-        if (checkers[coords[i]]) {
-          if (checkers[coords[i]].color === this.state.player) continue;
-          counter++;
+    for (let i = 0; i < coord.length; i++) {
+      if (freeCells.includes(coord[i])) {
+        if (counter > 1) break;
+        turns.push(coord[i]);
+        if (Object.keys(bited).includes(coord[i - 1])) {
+          bited[coord[i]] = bited[coord[i - 1]];
+        }
+      } else {
+        if (checkers[coord[i]]) {
+          if (checkers[coord[i]].color !== player) {
+            counter++;
+            if (counter > 1) break;
+            if (coord[i + 1] && freeCells.includes(coord[i + 1])) {
+              if (+coord[i][1] === 8 || +coord[i][1] === 0) break;
+              if (coord[i][0] === "a" || coord[i][0] === "h") break;
+              bited[coord[i + 1]] = coord[i];
+            }
+          }
         }
       }
-      if (counter > 0) {
-        if (freeCells.includes(coords[i])) {
-          coordsToBite.push(coords[i]);
-        }
-      }
-      if (counter > 1) break;
     }
 
-    if (Object.keys(coordsToBite).length > 0)
-      coordsToTurn = Object.keys(coordsToBite);
-
-    return {
-      turns: coordsToTurn,
-      toBite: coordsToBite,
-    };
+    return { bited: bited, turns: turns, deprecated: deprecated };
   };
 
-  getTurnCoordsQueen = ({ coords, freeCells, name, checkers }) => {
-    let turns = [];
-    let toBite = [];
-    for (let key in coords) {
-      coords[key].result =
-        key === "left"
-          ? coords[key].result.sort()
-          : coords[key].result.sort().reverse();
-      let tmp = this.getTurnsByDiagonal(
-        coords[key].result,
-        freeCells,
-        checkers
-      );
-      turns = [...turns, ...tmp.turns];
-      toBite = [...toBite, ...tmp.toBite];
+  hasPerspectiveToBite = (params) => {
+    let {
+      coords,
+      freeCells,
+      checkers,
+      deprecated,
+      counter,
+      acc,
+      player,
+    } = params;
+    let tmp = {};
+    tmp.acc = acc;
+    tmp.freeCells = freeCells.filter((item) => !deprecated.includes(item));
+    tmp.checkers = checkers;
+    tmp.toDelete = params.toDelete;
+
+    for (let i = 0; i < coords.length; i++) {
+      let checker = {
+        name: coords[i],
+        x: cells[coords[i]].x,
+        y: cells[coords[i]].y,
+        color: player,
+      };
+
+      let newCoords = this.getDiagonal(checker);
+      for (let key in newCoords) {
+        let bited = this.checkForQueen({
+          checker: checker,
+          coords: newCoords[key],
+          freeCells: freeCells,
+          checkers: checkers,
+          player: player,
+        });
+
+        if (Object.keys(bited.bited).length === 0) {
+          if (coords.length > 1) tmp.toDelete.push(checker.name);
+          continue;
+        } else {
+          tmp.acc = { ...acc, ...bited.bited };
+          tmp.coords = Object.keys(bited.bited);
+          tmp.deprecated = [...deprecated, ...bited.deprecated];
+        }
+      }
     }
-    return {
-      turns: turns,
-      bited: Object.values(toBite) !== "" ? { [name]: toBite } : {},
-    };
+    if (tmp.coords && tmp.coords.length > 0) {
+      counter++;
+      tmp.counter = counter;
+      if (counter > Object.keys(tmp.acc).length) return tmp.acc;
+      this.hasPerspectiveToBite(tmp);
+    }
+    return { toBite: tmp.acc, toDelete: [...new Set(tmp.toDelete)] };
+  };
+
+  checkForQueen = (params) => {
+    let { checker, coords, freeCells, checkers, player } = params;
+    let turns = [];
+    let bited = {};
+    let deprecated = [];
+    coords = coords.sort();
+    const ch = coords.indexOf(checker.name);
+    let before = ch === 0 ? coords.slice(ch) : coords.slice(0, ch);
+    let after = coords.slice(ch + 1);
+    // первичная проверка
+    let beforeCoords = this.getCFCheck(before, freeCells, checkers, player);
+    let afterCoords = this.getCFCheck(after, freeCells, checkers, player);
+    bited = Object.assign({}, beforeCoords.bited, afterCoords.bited);
+    turns = [...new Set(turns.concat(beforeCoords.turns, afterCoords.turns))];
+    deprecated = [
+      ...new Set(
+        deprecated.concat(beforeCoords.deprecated, afterCoords.deprecated)
+      ),
+    ];
+    return { turns: turns, bited: bited, deprecated: deprecated };
+  };
+
+  getTurnCoordsQueen = ({ coords, checker }) => {
+    let { freeCells, checkers, player } = this.state;
+    let turns = [];
+    let toBite = {};
+    let deprecated = [];
+
+    for (let key in coords) {
+      let tmp = this.checkForQueen({
+        checker: checker,
+        coords: coords[key],
+        freeCells: freeCells,
+        checkers: checkers,
+        player: player,
+      });
+      if (Object.keys(tmp.bited).length > 0) {
+        toBite = { ...toBite, ...tmp.bited };
+      }
+      turns = turns.concat(tmp.turns);
+      deprecated = deprecated.concat(tmp.deprecated);
+    }
+    if (Object.keys(toBite).length > 0) {
+      let params = {
+        coords: Object.keys(toBite),
+        freeCells: freeCells,
+        checkers: checkers,
+        deprecated: deprecated,
+        counter: 0,
+        acc: toBite,
+        toDelete: [],
+        player: player,
+      };
+      let result = this.clearInvalidRoutes(this.hasPerspectiveToBite(params));
+      return { turns: [], toBite: result };
+    } else return { turns: turns, toBite: {} };
+  };
+
+  clearInvalidRoutes = ({ toBite, toDelete }) => {
+    for (let checker in toBite) {
+      if (!toDelete.includes(checker)) return { [checker]: toBite[checker] };
+    }
   };
 
   render() {
