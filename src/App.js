@@ -60,7 +60,6 @@ class App extends React.Component {
             coords: this.getDiagonal(checkers[key]),
             checker: checkers[key],
           });
-          // console.log(tmp);
           if (Object.keys(tmp.toBite).length > 0) {
             bited.turns = this.extractCoordsQueen(tmp.toBite);
             bited.bited[key] = tmp.toBite;
@@ -167,11 +166,10 @@ class App extends React.Component {
     return { checkers: checkers, freeCells: freeCells, wasBited: wasBited };
   };
 
-  biteAgain = (player) => {
+  biteAgainPlainChecker = player => {
     let { turns, willBeBited } = this.scanBoard(player);
     if (
       Object.keys(turns).length > 0 &&
-      Object.keys(willBeBited).length > 0 &&
       Object.keys(willBeBited).includes(this.state.activeChecker)
     ) {
       this.setState({
@@ -184,10 +182,38 @@ class App extends React.Component {
         activeChecker: null,
       });
     }
+  }
+
+  biteAgainQueen = (player,from=null) => {
+    console.log(player,from);
+  }
+
+  biteAgain = (player,isQueen) => {
+    if(!isQueen){
+      this.biteAgainPlainChecker(player);
+    } else {
+      this.biteAgainQueen(player);
+    }
+    // let { turns, willBeBited } = this.scanBoard(player);
+    // if (
+    //   Object.keys(turns).length > 0 &&
+    //   Object.keys(willBeBited).includes(this.state.activeChecker)
+    // ) {
+    //   this.setState({
+    //     turns: turns,
+    //     toBite: willBeBited,
+    //   });
+    // } else {
+    //   this.setState({
+    //     player: player === "white" ? "black" : "white",
+    //     activeChecker: null,
+    //   });
+    // }
   };
 
   moveChecker = (field, isActive) => {
     let { freeCells, player } = this.state;
+    let isQueen = false;
     if (freeCells.includes(field.name) && isActive === "active") {
       let { checkers, freeCells, wasBited } = this.replaceChecker(field);
       if (!checkers[field.name].isQueen) {
@@ -196,6 +222,7 @@ class App extends React.Component {
         if (checkers[field.name].to === "up" && field.x === 1)
           checkers[field.name].isQueen = true;
       } else {
+        isQueen = true;
       }
       if (wasBited === 1) {
         this.setState(
@@ -205,7 +232,7 @@ class App extends React.Component {
             checkers: checkers,
             freeCells: freeCells,
           }),
-          () => this.biteAgain(player)
+          () => this.biteAgain(player, isQueen)
         );
       } else {
         this.setState({
@@ -254,7 +281,7 @@ class App extends React.Component {
     if (x > y) {
       beginX = x - y;
       beginY = y - y;
-      endY = x === 7 ? y - 1 : 7 - beginX;
+      endY = 7 - beginX;
       endX = beginY === 0 || x === 7 ? 7 : 7 - beginY;
     }
     let obj = {
@@ -324,7 +351,6 @@ class App extends React.Component {
     let counter = 0;
     let turns = [];
     let bited = {};
-    let deprecated = [];
     for (let i = 0; i < coord.length; i++) {
       if (freeCells.includes(coord[i])) {
         if (counter > 1) break;
@@ -350,15 +376,13 @@ class App extends React.Component {
       }
     }
 
-    return { bited: bited, turns: turns, deprecated: deprecated };
+    return { bited: bited, turns: turns };
   };
 
   hasPerspectiveToBite = (params) => {
     let { coords, freeCells, checkers, player, to } = params;
     let coords1 = Object.keys(coords);
-    let flag = 0;
-    let will = {};
-    let del = {};
+    let res = {};
     for (let i = 0; i < coords1.length; i++) {
       let checker = {
         name: coords1[i],
@@ -377,14 +401,10 @@ class App extends React.Component {
       });
 
       if (Object.keys(bited.bited).length > 0) {
-        will[coords1[i]] = coords[coords1[i]];
-        flag++;
-      } else {
-        del[coords1[i]] = coords[coords1[i]];
+        res[checker.name] = Object.keys(bited.bited);
       }
     }
-    if (Object.keys(will).length > 0) return {will:will,del:{}};
-    else return {will:{},del:del};
+    return res;
   };
 
   checkForQueen = (params) => {
@@ -406,39 +426,29 @@ class App extends React.Component {
     let { freeCells, checkers, player } = this.state;
     let turns = [];
     let toBite = {};
+    let opposite = {};
     for (let key in coords) {
-      let tmp = this.checkForQueen({
+      let params = {
         checker: checker,
         coords: coords[key],
         freeCells: freeCells,
         checkers: checkers,
         player: player,
         to: key,
-      });
-      if (Object.keys(tmp.bited).length > 0) {
-        let params = {
-          coords: tmp.bited,
-          freeCells: freeCells,
-          checkers: checkers,
-          player: player,
-          to: key,
-        };
-        let tmp1 = this.hasPerspectiveToBite(params);
-        if(Object.keys(tmp1.del).length > 0){
-          params = {...params, coords:tmp1.del, to:key === "left" ? "right":"left"};
-          let oppositeCoords = this.hasPerspectiveToBite(params);
-          if(Object.keys(oppositeCoords.will).length > 0){
-            toBite = Object.assign(toBite,oppositeCoords.will);
-          }
-          if(Object.keys(oppositeCoords.del).length > 0){
-            toBite = Object.assign(toBite,oppositeCoords.del);
-          }
-        } else {
-          toBite = Object.assign(toBite, tmp1.will);
-        }
-      } else {
-        turns = turns.concat(tmp.turns);
+      };
+      let tmp = this.checkForQueen(params);
+
+      params = {
+        ...params,
+        coords: tmp.bited,
+        to: key === "left" ? "right" : "left",
+      };
+      opposite = this.hasPerspectiveToBite(params);
+      if (Object.keys(opposite).length > 0) {
+        toBite = Object.assign(toBite, opposite);
       }
+      turns = turns.concat(tmp.turns);
+      toBite = Object.assign(toBite, tmp.bited);
     }
     if (Object.keys(toBite).length > 0) {
       let res = [];
