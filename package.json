@@ -30,5 +30,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "main": "index.js",
+  "repository": "https://github.com/oleksi-l/alex-checkers.git",
+  "author": "oleks-l <oleksi.lomakin@gmail.com>",
+  "license": "MIT"
 }
