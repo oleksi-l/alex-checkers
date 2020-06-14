@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import Checker from "./Checker";
-import { AppContext } from "./App";
+import { AppContext } from "../App";
 
 const checkIsActive = (turns, freeCells, name) => {
   if (!turns || turns.length === 0) return "";

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { AppContext } from "./App";
-import queen from "./queen.svg";
+import { AppContext } from "../App";
+import queen from "../img/queen.svg";
 
 const Checker = ({ prop }) => {
   const { activeChecker, toggleActive } = useContext(AppContext);

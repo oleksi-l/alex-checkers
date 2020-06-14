@@ -6,8 +6,8 @@ const makeRows = () => {
     return row.map((cell, x) => {
       return {
         name: `${letters[x]}${y + 1}`,
-        x: y+1,
-        y: x+1,
+        x: y + 1,
+        y: x + 1,
       };
     });
   });
@@ -16,11 +16,11 @@ const makeRows = () => {
 
 let rows = makeRows();
 
-const getCellsCoords = rows => {
+const getCellsCoords = (rows) => {
   rows = rows.flat();
   let result = {};
-  for(let i = 0; i < rows.length;i++){
-    result[rows[i].name] = {x: rows[i].x,y:rows[i].y};
+  for (let i = 0; i < rows.length; i++) {
+    result[rows[i].name] = { x: rows[i].x, y: rows[i].y };
   }
   return result;
 };
@@ -56,6 +56,6 @@ const makeCheckers = () => {
 
 const checkers = makeCheckers();
 
-const freeCells = ["b4","d4","f4","h4","a5","c5","e5","g5"];
+const freeCells = ["b4", "d4", "f4", "h4", "a5", "c5", "e5", "g5"];
 
 export { letters, rows, checkers, freeCells, cells };
