@@ -37,10 +37,9 @@ class App extends React.Component {
       if (checkers[name].color === player) playerCheckers.push(name);
     }
     if (
-      playerCheckers.length === 0 ||
-      (Object.keys(toBite).length === 0 && Object.keys(turns).length === 0)
-    )
+      playerCheckers.length === 0 || Object.keys(turns).length === 0){
       return player;
+      }
     else return false;
   };
 
