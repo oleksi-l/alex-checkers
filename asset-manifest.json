@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/alex-checkers/static/css/main.fa78fff3.chunk.css",
+    "main.js": "/alex-checkers/static/js/main.e25bbbd8.chunk.js",
+    "main.js.map": "/alex-checkers/static/js/main.e25bbbd8.chunk.js.map",
+    "runtime-main.js": "/alex-checkers/static/js/runtime-main.53e6ee67.js",
+    "runtime-main.js.map": "/alex-checkers/static/js/runtime-main.53e6ee67.js.map",
+    "static/js/2.d1678d02.chunk.js": "/alex-checkers/static/js/2.d1678d02.chunk.js",
+    "static/js/2.d1678d02.chunk.js.map": "/alex-checkers/static/js/2.d1678d02.chunk.js.map",
+    "index.html": "/alex-checkers/index.html",
+    "precache-manifest.970ae3e341cfc6e6bddc7f81ff9c97d9.js": "/alex-checkers/precache-manifest.970ae3e341cfc6e6bddc7f81ff9c97d9.js",
+    "service-worker.js": "/alex-checkers/service-worker.js",
+    "static/css/main.fa78fff3.chunk.css.map": "/alex-checkers/static/css/main.fa78fff3.chunk.css.map",
+    "static/js/2.d1678d02.chunk.js.LICENSE.txt": "/alex-checkers/static/js/2.d1678d02.chunk.js.LICENSE.txt",
+    "static/media/queen.svg": "/alex-checkers/static/media/queen.4a25f75f.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.53e6ee67.js",
+    "static/js/2.d1678d02.chunk.js",
+    "static/css/main.fa78fff3.chunk.css",
+    "static/js/main.e25bbbd8.chunk.js"
+  ]
+}
