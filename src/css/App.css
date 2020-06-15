@@ -1,13 +1,15 @@
 .App {
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
 }
 
 .board {
   display: flex;
   flex-wrap: wrap;
-  max-width: 400px;
+  max-width: 30vw;
   margin: 0 auto;
+  max-height: 30vw;
   border: 1px solid;
 }
 
@@ -19,8 +21,8 @@
 }
 
 .row-item {
-  width: 50px;
-  height: 50px;
+  width: 3.75vw;
+  height: 3.75vw;
   position: relative;
   z-index: 5;
 }
@@ -41,26 +43,67 @@
   background: rebeccapurple;
   z-index: 1;
 }
-
 .checker {
-  width: 40px;
-  height: 40px;
-  margin: 5px;
+  width: 3vw;
+  height: 3vw;
+  margin: 0.375vw;
   border-radius: 50%;
   position: relative;
   z-index: 10;
 }
 .checker-icon {
-  margin: 5px;
+  margin: 0.5vw;
+  width: 2vw;
 }
 .white {
   background: #fff;
 }
 
 .black {
-  background: blue;
+  background: lightseagreen;
 }
 
 .active {
   background: yellow;
+}
+
+@media screen and (max-width: 576px) and (orientation: portrait){
+  .board{
+      max-width: 70vw;
+      max-height: 70vw;
+  }
+  .row-item{
+    width: 8.8vw;
+    height: 8.8vw;
+  }
+  .checker{
+    width: 7vw;
+    height: 7vw;
+    margin: 0.9vw;
+  }
+  .checker-icon{
+    width: 6vw;
+  }
+}
+
+@media screen and (max-width: 576px) and (orientation: landscape){
+  h3{
+    margin: 10px;
+  }
+  .board{
+    max-width: 45vw;
+    max-height: 45vw;
+  }
+  .row-item{
+    width: 5.63vw;
+    height: 5.63vw;
+  }
+  .checker{
+    width: 4.5vw;
+    height: 4.5vw;
+    margin: 0.5vw;
+  }
+  .checker-icon{
+    width: 3.6vw;
+  }
 }
