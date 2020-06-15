@@ -30,8 +30,8 @@ class App extends React.Component {
     this.setState({ turns: fields.turns, toBite: fields.willBeBited });
   }
 
-  checkWinner = (player) => {
-    let { checkers, toBite, turns } = this.state;
+  checkWinner = (player,turns,willBeBited) => {
+    let { checkers} = this.state;
     let playerCheckers = [];
     for (let name in checkers) {
       if (checkers[name].color === player) playerCheckers.push(name);
@@ -47,7 +47,7 @@ class App extends React.Component {
     let { player, activeChecker, checkers, toBite } = this.state;
     if (prevState.player !== player) {
       let fields = this.scanBoard(player);
-      let flag = this.checkWinner(player);
+      let flag = this.checkWinner(player,fields.turns,fields.willBeBited);
       if (!flag) {
         this.setState({ turns: fields.turns, toBite: fields.willBeBited });
       } else {
